@@ -21,9 +21,9 @@ horizon_steps: 16
 cond_steps: 1
 
 wandb:
-  entity: ${oc.env:DPPO_WANDB_ENTITY}
-  project: furniture-${task}-${randomness}-pretrain
-  run: ${now:%H-%M-%S}_${name}
+  #entity: ${oc.env:DPPO_WANDB_ENTITY}
+  #project: furniture-${task}-${randomness}-pretrain
+  #run: ${now:%H-%M-%S}_${name}
 
 train:
   n_epochs: 8000

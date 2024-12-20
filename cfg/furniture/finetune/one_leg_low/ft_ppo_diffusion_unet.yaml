@@ -7,7 +7,7 @@ _target_: agent.finetune.train_ppo_diffusion_agent.TrainPPODiffusionAgent
 
 name: ${env_name}_ft_diffusion_unet_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
 logdir: ${oc.env:DPPO_LOG_DIR}/furniture-finetune/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-base_policy_path: ${oc.env:DPPO_LOG_DIR}/furniture-pretrain/one_leg/one_leg_low_dim_pre_diffusion_unet_ta16_td100/2024-07-03_22-23-38/checkpoint/state_8000.pt
+base_policy_path: ${oc.env:DPPO_LOG_DIR}/furniture-pretrain/one_leg_low_dim_pre_diffusion_unet_ta16_td100/2024-12-19_13-32-50_42/checkpoint/state_4500.pt
 normalization_path: ${oc.env:DPPO_DATA_DIR}/furniture/${env.specific.furniture}_${env.specific.randomness}/normalization.pth
 
 seed: 42
@@ -23,7 +23,7 @@ act_steps: 8
 use_ddim: True
 
 env:
-  n_envs: 1000
+  n_envs: 100
   name: ${env_name}
   env_type: furniture
   max_episode_steps: 700
@@ -38,14 +38,14 @@ env:
     sparse_reward: True
 
 wandb:
-  entity: ${oc.env:DPPO_WANDB_ENTITY}
-  project: furniture-${env.specific.furniture}-${env.specific.randomness}-finetune
-  run: ${now:%H-%M-%S}_${name}
+  #entity: ${oc.env:DPPO_WANDB_ENTITY}
+  #project: furniture-${env.specific.furniture}-${env.specific.randomness}-finetune
+  #run: ${now:%H-%M-%S}_${name}
 
 train:
   n_train_itr: 1000
   n_critic_warmup_itr: 1
-  n_steps: ${eval:'round(${env.max_episode_steps} / ${act_steps})'}
+  n_steps: ${eval:'round(${env.max_episode_steps} / ${act_steps})*10'}
   gamma: 0.999
   actor_lr: 1e-5
   actor_weight_decay: 0

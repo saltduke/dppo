@@ -7,7 +7,7 @@ _target_: agent.eval.eval_diffusion_agent.EvalDiffusionAgent
 
 name: ${env_name}_eval_diffusion_mlp_ta${horizon_steps}_td${denoising_steps}
 logdir: ${oc.env:DPPO_LOG_DIR}/furniture-eval/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-base_policy_path: ${oc.env:DPPO_LOG_DIR}/furniture-pretrain/one_leg/one_leg_low_dim_pre_diffusion_mlp_ta8_td100/2024-07-22_20-01-16/checkpoint/state_8000.pt
+base_policy_path: ${oc.env:DPPO_LOG_DIR}/furniture-finetune/one_leg_low_dim_ft_diffusion_unet_ta16_td100_tdf5/2024-12-20_09-21-27_42/checkpoint/state_0.pt
 normalization_path: ${oc.env:DPPO_DATA_DIR}/furniture/${env.specific.furniture}_${env.specific.randomness}/normalization.pth
 
 seed: 42
@@ -22,15 +22,16 @@ act_steps: 8
 use_ddim: True
 ddim_steps: 5
 
-n_steps: ${eval:'round(${env.max_episode_steps} / ${act_steps})'}
-render_num: 0
+n_steps: ${eval:'round(${env.max_episode_steps} / ${act_steps})*10'}
+render_num: 1
 
 env:
-  n_envs: 1000
+  n_envs: 10
   name: ${env_name}
   env_type: furniture
-  max_episode_steps: 700
+  max_episode_steps: 7000
   best_reward_threshold_for_success: 1
+  save_video: True
   specific:
     headless: true
     furniture: one_leg
@@ -50,14 +51,16 @@ model:
   ddim_steps: ${ddim_steps}
   network_path: ${base_policy_path}
   network:
-    _target_: model.diffusion.mlp_diffusion.DiffusionMLP
-    time_dim: 32
-    mlp_dims: [1024, 1024, 1024, 1024, 1024, 1024, 1024]
-    cond_mlp_dims: [512, 64]
-    use_layernorm: True # needed for larger MLP
-    residual_style: True
+    _target_: model.diffusion.unet.Unet1D
+    diffusion_step_embed_dim: 16
+    dim: 64
+    dim_mults: [1, 2, 4]
+    kernel_size: 5
+    n_groups: 8
+    smaller_encoder: False
+    cond_predict_scale: True
+    groupnorm_eps: 1e-4 # not important
     cond_dim: ${eval:'${obs_dim} * ${cond_steps}'}
-    horizon_steps: ${horizon_steps}
     action_dim: ${action_dim}
   horizon_steps: ${horizon_steps}
   obs_dim: ${obs_dim}
