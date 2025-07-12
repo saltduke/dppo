@@ -42,7 +42,9 @@ class EvalDiffusionAgent(EvalAgent):
         for step in range(self.n_steps):
             if step % 10 == 0:
                 print(f"Processed step {step} of {self.n_steps}")
-
+            #convert obs from dict to np.array
+            if self.cfg.env.env_type == "franka_sim":
+                prev_obs_venv["state"] = np.concatenate([prev_obs_venv["state"]["panda/tcp_pos"],prev_obs_venv["state"]["panda/tcp_quat"],prev_obs_venv["state"]["panda/tcp_vel"], prev_obs_venv["state"]["panda/gripper_pos"], prev_obs_venv["state"]["panda/wrist_force"],prev_obs_venv["state"]["place_pos"]], axis=1)
             # Select action
             with torch.no_grad():
                 cond = {
@@ -58,7 +60,7 @@ class EvalDiffusionAgent(EvalAgent):
 
             # Apply multi-step action
             obs_venv, reward_venv, terminated_venv, truncated_venv, info_venv = (
-                self.venv.step(action_venv)
+                self.venv.step(np.resize(action_venv, (self.cfg.env.n_envs,self.cfg.action_dim)))
             )
             reward_trajs[step] = reward_venv
             firsts_trajs[step + 1] = terminated_venv | truncated_venv

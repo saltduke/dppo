@@ -1,6 +1,7 @@
 import os
 import json
-
+import gymnasium
+from env.franka_sim import envs
 try:
     from collections.abc import Iterable
 except ImportError:
@@ -68,8 +69,15 @@ def make_async(
            [ 0.03468829,  0.01500225,  0.01230312,  0.01825218]],
           dtype=float32)
     """
-
-    if env_type == "furniture":
+    if env_type == "franka_sim":
+        env = envs.PandaPickCubeGymEnv(action_scale=(0.1, 1), render_mode="human")
+        env.reset()
+        if asynchronous:
+            envvec = gymnasium.make_vec(id, num_envs=num_envs, vectorization_mode="async", render_mode="human", max_episode_steps=max_episode_steps)
+        else:
+            envvec = gymnasium.make_vec(id, num_envs=num_envs, vectorization_mode="sync", render_mode="human", max_episode_steps=max_episode_steps)
+        return envvec
+    elif env_type == "furniture":
         from furniture_bench.envs.observation import DEFAULT_STATE_OBS
         from furniture_bench.envs.furniture_rl_sim_env import FurnitureRLSimEnv
         from env.gym_utils.wrapper.furniture import FurnitureRLSimEnvMultiStepWrapper
@@ -168,6 +176,7 @@ def make_async(
             if "kitchen" not in id:  # d4rl kitchen does not support rendering!
                 kwargs["render"] = render
             env = make_(id, **kwargs)
+
 
         # add wrappers
         if wrappers is not None:

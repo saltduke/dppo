@@ -44,7 +44,7 @@ class EvalAgent:
             action_dim=cfg.action_dim,
             **cfg.env.specific if "specific" in cfg.env else {},
         )
-        if not env_type == "furniture":
+        if not env_type == "furniture" and not env_type == "franka_sim":
             self.venv.seed(
                 [self.seed + i for i in range(cfg.env.n_envs)]
             )  # otherwise parallel envs might have the same initial states!
@@ -94,7 +94,10 @@ class EvalAgent:
             options_venv = [
                 {k: v for k, v in kwargs.items()} for _ in range(self.n_envs)
             ]
-        obs_venv = self.venv.reset_arg(options_list=options_venv)
+        if self.cfg.env.get("env_type", None) == "franka_sim":
+            obs_venv, info = self.venv.reset(options=options_venv)
+        else:
+            obs_venv = self.venv.reset_arg(options_list=options_venv)
         # convert to OrderedDict if obs_venv is a list of dict
         if isinstance(obs_venv, list):
             obs_venv = {
@@ -110,7 +113,10 @@ class EvalAgent:
 
     def reset_env(self, env_ind, verbose=False):
         task = {}
-        obs = self.venv.reset_one_arg(env_ind=env_ind, options=task)
+        if self.cfg.env.get("env_type", None) == "franka_sim":
+            obs, info = self.venv.reset_one_arg(env_ind=env_ind, options=task)
+        else:
+            obs = self.venv.reset_one_arg(env_ind=env_ind, options=task)
         if verbose:
             logging.info(f"<-- Reset environment {env_ind} with task {task}")
         return obs
